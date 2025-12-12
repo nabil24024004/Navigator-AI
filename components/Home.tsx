@@ -1,13 +1,14 @@
 import React from 'react';
-import { Zap, Camera, Brain, List, Eye, AlertTriangle, PlayCircle, ShieldCheck } from 'lucide-react';
+import { Zap, Camera, Brain, List, Eye, AlertTriangle, PlayCircle, ShieldCheck, Mic } from 'lucide-react';
 import { APP_NAME } from '../constants';
 
 interface HomeProps {
   onStartAnalysis: () => void;
   onNavigate: (page: string) => void;
+  onStartLive: () => void;
 }
 
-const Home: React.FC<HomeProps> = ({ onStartAnalysis, onNavigate }) => {
+const Home: React.FC<HomeProps> = ({ onStartAnalysis, onNavigate, onStartLive }) => {
   return (
     <div className="flex flex-col items-center">
       
@@ -37,11 +38,11 @@ const Home: React.FC<HomeProps> = ({ onStartAnalysis, onNavigate }) => {
           </button>
           
           <button 
-            onClick={() => onNavigate('help')}
-            className="px-8 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl font-bold text-white transition-all flex items-center gap-2"
+            onClick={onStartLive}
+            className="px-8 py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl font-bold text-white transition-all hover:scale-105 flex items-center gap-2"
           >
-            <PlayCircle className="w-5 h-5" />
-            How It Works
+            <Mic className="w-5 h-5" />
+            Live Voice Mode
           </button>
         </div>
 
@@ -117,7 +118,18 @@ const Home: React.FC<HomeProps> = ({ onStartAnalysis, onNavigate }) => {
           <span className="hover:text-white transition-colors cursor-pointer">Privacy</span>
           <span className="hover:text-white transition-colors cursor-pointer">Terms</span>
         </div>
-        <p>{APP_NAME} &copy; 2025</p>
+        <p className="mb-2">{APP_NAME} &copy; 2025</p>
+        <p>
+          Developed by{' '}
+          <a 
+            href="https://neuralabs.netlify.app" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-blue-500 hover:text-blue-400 transition-colors"
+          >
+            Team Neura Labs
+          </a>
+        </p>
       </footer>
     </div>
   );

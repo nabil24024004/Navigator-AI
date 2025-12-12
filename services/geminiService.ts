@@ -91,7 +91,7 @@ export const analyzeIncident = async (
     const cleanBase64 = imageBase64.split(',')[1] || imageBase64;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview', // Using the pro preview for reasoning capabilities
+      model: 'gemini-3-pro-preview', // Using the pro preview for image analysis
       contents: {
         parts: [
           {
@@ -123,5 +123,45 @@ export const analyzeIncident = async (
     console.error("Gemini API Error:", error);
     // Fallback to mock on error to prevent app crash in demo
     return MOCK_RESPONSE;
+  }
+};
+
+// Chatbot using Gemini 3 Pro for deep reasoning
+export const chatWithNavigator = async (history: {role: string, parts: {text: string}[]}[], message: string) => {
+  if (!API_KEY) {
+    return "I am running in demo mode. Please configure an API_KEY to chat with Gemini 3 Pro.";
+  }
+  
+  try {
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const chat = ai.chats.create({
+      model: 'gemini-3-pro-preview',
+      history: history,
+      config: {
+        systemInstruction: "You are Navigator AI, an expert emergency crisis assistant. Be concise, calm, and helpful.",
+      }
+    });
+
+    const result = await chat.sendMessage({ message });
+    return result.text;
+  } catch (error) {
+    console.error("Chat Error:", error);
+    return "I'm having trouble connecting right now. Please try again.";
+  }
+};
+
+// Fast response using Gemini 2.5 Flash Lite
+export const getFastSafetyTip = async () => {
+  if (!API_KEY) return "Always have an emergency kit ready.";
+
+  try {
+    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite', // Low latency model
+      contents: "Give me one short, random, universal safety tip (max 15 words).",
+    });
+    return response.text;
+  } catch (error) {
+    return "Stay aware of your surroundings.";
   }
 };

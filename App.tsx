@@ -13,6 +13,8 @@ import UrgencyBanner from './components/UrgencyBanner';
 import Settings from './components/Settings';
 import Help from './components/Help';
 import EmergencyButton from './components/EmergencyButton';
+import ChatBot from './components/ChatBot';
+import LiveVoice from './components/LiveVoice';
 
 type View = 'home' | 'upload' | 'results' | 'settings' | 'help';
 
@@ -21,6 +23,7 @@ function App() {
   const [incident, setIncident] = useState<IncidentResponse | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [isLiveMode, setIsLiveMode] = useState(false);
 
   const navigate = (view: View) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -52,10 +55,10 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen font-sans text-gray-100 bg-background antialiased selection:bg-blue-500/30 pb-20">
+    <div className="min-h-screen font-sans text-gray-100 bg-background antialiased selection:bg-blue-500/30">
       
-      {/* Global Header */}
-      <header className="sticky top-0 z-50 w-full backdrop-blur-xl border-b border-white/5 bg-black/80">
+      {/* Global Header - Fixed to viewport */}
+      <header className="fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-xl border-b border-white/5 bg-black/80">
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2 cursor-pointer group" onClick={() => navigate('home')}>
@@ -95,8 +98,8 @@ function App() {
         </div>
       </header>
 
-      {/* View Content */}
-      <main className="max-w-5xl mx-auto pt-8 md:pt-12 px-4 md:px-6">
+      {/* View Content - Added padding-top to account for fixed header */}
+      <main className="max-w-5xl mx-auto pt-24 md:pt-28 px-4 md:px-6 pb-24">
         
         {/* Back Button Logic */}
         {currentView !== 'home' && (
@@ -111,7 +114,11 @@ function App() {
         )}
 
         {currentView === 'home' && (
-          <Home onStartAnalysis={() => navigate('upload')} onNavigate={navigate} />
+          <Home 
+            onStartAnalysis={() => navigate('upload')} 
+            onNavigate={navigate}
+            onStartLive={() => setIsLiveMode(true)}
+          />
         )}
 
         {currentView === 'upload' && (
@@ -175,10 +182,15 @@ function App() {
 
       </main>
 
-      {/* Floating Emergency Button - Show everywhere except results where it is in the banner, or handle globally */}
-      {/* Design choice: If results page has big banner, floating button might be redundant or extra safety. Let's keep it but maybe smaller on results? */}
-      {/* Actually screenshot 3 has the banner. I will hide floating button on results page to avoid clutter */}
+      {/* Floating Emergency Button */}
       {currentView !== 'results' && currentView !== 'home' && <EmergencyButton />}
+
+      {/* Persistent AI Chatbot */}
+      <ChatBot />
+
+      {/* Live Voice Modal */}
+      {isLiveMode && <LiveVoice onClose={() => setIsLiveMode(false)} />}
+
     </div>
   );
 }
