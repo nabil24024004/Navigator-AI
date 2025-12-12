@@ -2,8 +2,6 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { IncidentResponse, UrgencyLevel } from '../types';
 import { MOCK_RESPONSE, SYSTEM_INSTRUCTION } from '../constants';
 
-const API_KEY = process.env.API_KEY;
-
 // Define the response schema for strict JSON output
 const responseSchema: Schema = {
   type: Type.OBJECT,
@@ -78,14 +76,14 @@ export const analyzeIncident = async (
 ): Promise<IncidentResponse> => {
   
   // Simulation delay for realistic feel if mocking
-  if (!API_KEY) {
+  if (!process.env.API_KEY) {
     console.warn("No API_KEY found in env. Using Mock Data.");
     await new Promise(resolve => setTimeout(resolve, 2500));
     return MOCK_RESPONSE;
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     // Remove header from base64 string if present (data:image/jpeg;base64,...)
     const cleanBase64 = imageBase64.split(',')[1] || imageBase64;
@@ -109,7 +107,7 @@ export const analyzeIncident = async (
         systemInstruction: SYSTEM_INSTRUCTION,
         responseMimeType: "application/json",
         responseSchema: responseSchema,
-        thinkingConfig: { thinkingBudget: 1024 } // Enable thinking for better reasoning traces
+        // thinkingConfig removed as it is not supported by gemini-3-pro-preview
       }
     });
 
@@ -128,12 +126,12 @@ export const analyzeIncident = async (
 
 // Chatbot using Gemini 3 Pro for deep reasoning
 export const chatWithNavigator = async (history: {role: string, parts: {text: string}[]}[], message: string) => {
-  if (!API_KEY) {
+  if (!process.env.API_KEY) {
     return "I am running in demo mode. Please configure an API_KEY to chat with Gemini 3 Pro.";
   }
   
   try {
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const chat = ai.chats.create({
       model: 'gemini-3-pro-preview',
       history: history,
@@ -152,12 +150,12 @@ export const chatWithNavigator = async (history: {role: string, parts: {text: st
 
 // Fast response using Gemini 2.5 Flash Lite
 export const getFastSafetyTip = async () => {
-  if (!API_KEY) return "Always have an emergency kit ready.";
+  if (!process.env.API_KEY) return "Always have an emergency kit ready.";
 
   try {
-    const ai = new GoogleGenAI({ apiKey: API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite', // Low latency model
+      model: 'gemini-flash-lite-latest', // Low latency model
       contents: "Give me one short, random, universal safety tip (max 15 words).",
     });
     return response.text;

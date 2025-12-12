@@ -34,14 +34,13 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onClose }) => {
   }, []);
 
   const connectLiveSession = async () => {
-    const apiKey = process.env.API_KEY;
-    if (!apiKey) {
+    if (!process.env.API_KEY) {
       setError("No API Key found. Cannot start Live session.");
       return;
     }
 
     try {
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       // Initialize Audio Contexts
       const InputContextClass = (window.AudioContext || (window as any).webkitAudioContext);
