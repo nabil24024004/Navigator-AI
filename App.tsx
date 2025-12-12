@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { IncidentResponse } from './types';
+import React, { useState, useEffect } from 'react';
+import { IncidentResponse, IncidentState } from './types';
 import { analyzeIncident } from './services/geminiService';
 import { APP_NAME } from './constants';
-import { Zap, HelpCircle, Settings as SettingsIcon, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Zap, HelpCircle, Settings as SettingsIcon, ArrowLeft, CheckCircle2, History as HistoryIcon } from 'lucide-react';
+import { useSettings } from './contexts/SettingsContext';
+import { saveToHistory } from './services/historyService';
 
 // Screens
 import Home from './components/Home';
@@ -12,18 +14,49 @@ import ReasoningTrace from './components/ReasoningTrace';
 import UrgencyBanner from './components/UrgencyBanner';
 import Settings from './components/Settings';
 import Help from './components/Help';
+import History from './components/History';
 import EmergencyButton from './components/EmergencyButton';
 import ChatBot from './components/ChatBot';
 import LiveVoice from './components/LiveVoice';
 
-type View = 'home' | 'upload' | 'results' | 'settings' | 'help';
+type View = 'home' | 'upload' | 'results' | 'settings' | 'help' | 'history';
 
 function App() {
+  const { settings } = useSettings();
   const [currentView, setCurrentView] = useState<View>('home');
   const [incident, setIncident] = useState<IncidentResponse | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isLiveMode, setIsLiveMode] = useState(false);
+
+  // Offline Mode: Load cached incident on mount
+  useEffect(() => {
+    if (settings.offline) {
+      const cached = localStorage.getItem('last_incident_data');
+      if (cached) {
+        try {
+          const { incident: cachedIncident, image } = JSON.parse(cached);
+          if (cachedIncident) {
+            setIncident(cachedIncident);
+            if (image) setUploadedImage(image);
+          }
+        } catch (e) {
+          console.error("Failed to load cached incident", e);
+        }
+      }
+    }
+  }, [settings.offline]);
+
+  // Offline Mode: Save incident when updated
+  useEffect(() => {
+    if (settings.offline && incident) {
+      localStorage.setItem('last_incident_data', JSON.stringify({
+        incident,
+        image: uploadedImage,
+        timestamp: Date.now()
+      }));
+    }
+  }, [incident, uploadedImage, settings.offline]);
 
   const navigate = (view: View) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -33,12 +66,21 @@ function App() {
   const handleAnalyze = async (image: string, context: string) => {
     setUploadedImage(image);
     setIsAnalyzing(true);
-    // Move to results view early to show loading state if desired, but Uploader handles loading nicely.
-    // We stay on upload until done.
     
     try {
       const result = await analyzeIncident(image, context);
       setIncident(result);
+      
+      // Save to History
+      const historyItem: IncidentState = {
+        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+        imageUrl: image,
+        contextText: context || 'Untitled Analysis',
+        response: result,
+        timestamp: Date.now()
+      };
+      saveToHistory(historyItem);
+
       navigate('results');
     } catch (e) {
       console.error(e);
@@ -46,6 +88,12 @@ function App() {
     } finally {
       setIsAnalyzing(false);
     }
+  };
+
+  const handleLoadHistory = (item: IncidentState) => {
+      setIncident(item.response);
+      setUploadedImage(item.imageUrl);
+      navigate('results');
   };
 
   const resetAnalysis = () => {
@@ -81,6 +129,12 @@ function App() {
                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${currentView === 'upload' || currentView === 'results' ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/20' : 'text-gray-400 hover:text-white'}`}
             >
                 Analyze
+            </button>
+            <button 
+               onClick={() => navigate('history')} 
+               className={`px-3 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2 ${currentView === 'history' ? 'bg-white/10 text-white' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+            >
+               <HistoryIcon className="w-4 h-4" /> <span className="hidden md:inline">History</span>
             </button>
             <button 
                onClick={() => navigate('help')} 
@@ -128,6 +182,10 @@ function App() {
         {currentView === 'help' && <Help />}
         
         {currentView === 'settings' && <Settings />}
+
+        {currentView === 'history' && (
+           <History onLoadIncident={handleLoadHistory} />
+        )}
 
         {currentView === 'results' && incident && (
           <div className="animate-slide-up space-y-8 max-w-3xl mx-auto">

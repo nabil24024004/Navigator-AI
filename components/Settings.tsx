@@ -1,18 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Bell, Volume2, Vibrate, MapPin, Smartphone, Settings as SettingsIcon, Info } from 'lucide-react';
+import { useSettings } from '../contexts/SettingsContext';
 
 const Settings: React.FC = () => {
-  const [toggles, setToggles] = useState({
-    notifications: true,
-    sound: true,
-    haptic: true,
-    location: false,
-    offline: true
-  });
+  const { settings, toggleSetting } = useSettings();
 
-  const toggle = (key: keyof typeof toggles) => {
-    setToggles(prev => ({ ...prev, [key]: !prev[key] }));
-  };
+  const menuItems = [
+    { key: 'notifications', icon: Bell, label: 'Push Notifications', desc: 'Receive alerts for emergency updates' },
+    { key: 'sound', icon: Volume2, label: 'Sound Alerts', desc: 'Play audio for critical warnings' },
+    { key: 'haptic', icon: Vibrate, label: 'Haptic Feedback', desc: 'Vibration for important actions' },
+    { key: 'location', icon: MapPin, label: 'Location Services', desc: 'Auto-detect local emergency numbers' },
+    { key: 'offline', icon: Smartphone, label: 'Offline Mode', desc: 'Cache plans for offline access' },
+  ] as const;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 animate-fade-in">
@@ -25,14 +24,8 @@ const Settings: React.FC = () => {
       </div>
 
       <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mb-8">
-        {[
-          { key: 'notifications', icon: Bell, label: 'Push Notifications', desc: 'Receive alerts for emergency updates' },
-          { key: 'sound', icon: Volume2, label: 'Sound Alerts', desc: 'Play audio for critical warnings' },
-          { key: 'haptic', icon: Vibrate, label: 'Haptic Feedback', desc: 'Vibration for important actions' },
-          { key: 'location', icon: MapPin, label: 'Location Services', desc: 'Auto-detect local emergency numbers' },
-          { key: 'offline', icon: Smartphone, label: 'Offline Mode', desc: 'Cache plans for offline access' },
-        ].map((item, index) => (
-          <div key={item.key} className={`p-5 flex items-center justify-between hover:bg-white/5 transition-colors ${index !== 4 ? 'border-b border-white/5' : ''}`}>
+        {menuItems.map((item, index) => (
+          <div key={item.key} className={`p-5 flex items-center justify-between hover:bg-white/5 transition-colors ${index !== menuItems.length - 1 ? 'border-b border-white/5' : ''}`}>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-gray-300">
                 <item.icon className="w-5 h-5" />
@@ -43,10 +36,10 @@ const Settings: React.FC = () => {
               </div>
             </div>
             <button 
-              onClick={() => toggle(item.key as keyof typeof toggles)}
-              className={`w-12 h-7 rounded-full transition-colors relative ${toggles[item.key as keyof typeof toggles] ? 'bg-blue-600' : 'bg-gray-700'}`}
+              onClick={() => toggleSetting(item.key)}
+              className={`w-12 h-7 rounded-full transition-colors relative ${settings[item.key] ? 'bg-blue-600' : 'bg-gray-700'}`}
             >
-              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${toggles[item.key as keyof typeof toggles] ? 'left-6' : 'left-1'}`} />
+              <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${settings[item.key] ? 'left-6' : 'left-1'}`} />
             </button>
           </div>
         ))}
@@ -61,11 +54,13 @@ const Settings: React.FC = () => {
         <div className="flex gap-2">
           <input 
             type="text" 
-            value="999" 
+            value={settings.emergencyNumber} 
             readOnly 
             className="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white font-mono"
           />
-          <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-gray-400 font-mono">Auto-detected</button>
+          <button className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-gray-400 font-mono">
+            {settings.regionLabel}
+          </button>
         </div>
       </div>
 
