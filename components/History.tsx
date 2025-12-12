@@ -16,7 +16,9 @@ const History: React.FC<HistoryProps> = ({ onLoadIncident }) => {
   }, []);
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
     e.stopPropagation();
+    
     if (window.confirm("Are you sure you want to delete this record?")) {
         const updated = deleteHistoryItem(id);
         setHistory(updated);
@@ -90,7 +92,7 @@ const History: React.FC<HistoryProps> = ({ onLoadIncident }) => {
             {history.length > 0 && (
                 <button 
                     onClick={handleClearAll}
-                    className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold rounded-lg border border-red-500/20 transition-colors whitespace-nowrap"
+                    className="px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 text-xs font-bold rounded-lg border border-red-500/20 transition-colors whitespace-nowrap z-10"
                 >
                     Clear All
                 </button>
@@ -159,11 +161,11 @@ const History: React.FC<HistoryProps> = ({ onLoadIncident }) => {
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="absolute top-4 right-4 md:top-1/2 md:-translate-y-1/2 md:right-6 flex flex-col md:flex-row gap-3">
+                {/* Actions - Added z-10 to ensure it sits above the card link */}
+                <div className="absolute top-4 right-4 md:top-1/2 md:-translate-y-1/2 md:right-6 flex flex-col md:flex-row gap-3 z-10">
                     <button 
                         onClick={(e) => handleDelete(e, item.id)}
-                        className="p-2 rounded-full bg-black/40 text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors backdrop-blur-sm"
+                        className="p-2 rounded-full bg-black/40 text-gray-400 hover:text-red-500 hover:bg-red-500/10 transition-colors backdrop-blur-sm cursor-pointer"
                         title="Delete"
                     >
                         <Trash2 className="w-4 h-4" />

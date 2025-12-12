@@ -119,6 +119,7 @@ const Home: React.FC<HomeProps> = ({ onStartAnalysis, onNavigate, onStartLive })
           <span className="hover:text-white transition-colors cursor-pointer">Terms</span>
         </div>
         <p className="mb-2">{APP_NAME} &copy; 2025</p>
+        <p className="text-xs text-gray-600 mb-2 font-mono">Powered by Gemini 3 Pro multimodal AI</p>
         <p>
           Developed by{' '}
           <a 
