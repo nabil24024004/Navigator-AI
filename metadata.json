@@ -1,0 +1,9 @@
+{
+  "name": "Navigator AI",
+  "description": "AI-powered emergency crisis navigator that reasons over photos/videos and returns step-by-step intervention plans.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
